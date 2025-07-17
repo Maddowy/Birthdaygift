@@ -68,7 +68,6 @@
       z-index: 9999;
       display: none;
       background-color: black;
-      animation: fadeIn 1s ease forwards;
       pointer-events: none;
     }
     .fade-text {
@@ -80,7 +79,6 @@
       color: white;
       opacity: 0;
       z-index: 10000;
-      animation: fadeText 8s ease-in-out forwards;
       text-align: center;
     }
     @keyframes fadeText {
@@ -89,42 +87,31 @@
       85% { opacity: 1; }
       100% { opacity: 0; }
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
     #video-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background-color: black;
-}
-
-#video-container.fade-out {
-  animation: fadeOut 1.5s forwards;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-  }
-}
-
-#black-overlay {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: black;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9998;
-}
-
-
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      background-color: black;
+    }
+    #video-container.fade-out {
+      animation: fadeOut 1.5s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; }
+    }
+    #black-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: black;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9998;
+    }
   </style>
 </head>
 <body>
@@ -144,11 +131,11 @@
   </div>
 
   <div id="textOverlay" class="fade-text"></div>
-  
+
   <div id="video-container">
-   <video id="surpriseVideo" class="fullscreen-video" playsinline>
-     <source src="birthdaay.mp4" type="video/mp4" />
-   </video>
+    <video id="surpriseVideo" class="fullscreen-video" playsinline>
+      <source src="birthdaay.mp4" type="video/mp4" />
+    </video>
   </div>
 
   <div id="black-overlay"></div> 
@@ -167,81 +154,92 @@
       "A gift is a gift. Dil se de raha hu",
       "Here's a quick little video for u"
     ];
-
     const outroMessages = [
       "So… that was it 😌",
       "Told you it's not much but from the heart.",
       "Happy Birthday once again 💙",
       "You mean a lot to me, just saying.",
-      "Its not the best birthday gift, i hope it comes in the good category",
-      "I wish I had put more effort, but still. I did What I wanted to do. I hope you liked it, I hope you smiled and I hope you do good in your life",
-      "Next time, I will do it myself. I promise :)",
+      "Its not the best birthday gift, but i hope it comes in the good gift category",
+      "I wish I had put more effort, but still.", 
+      "I am Sorry for that",
+      "I hope you liked it, I hope you smiled and I hope you do good in your life",
+      "This could have been done easily by making a video",
+      "but I wanted do it the cool way; making a website lol",
+      "It was hard for me, took me hours to do it",
+      "I dont know shit about coding thats why",
+      "The music in background is awesome isnt it?",
+      "Happy birthday once again!!",
+      "You have done a lot for me, And i will be forever grateful for that",
+      "Jyada toh nahi bol diya?",
+      "Chal, tu bore hogayi hogi ;)",
+      "Next time, I will do something good and better, i dont care if its online or wot.", 
+      "I promise :)",
       "This page will vanish in 5 seconds. Just like this moment. But memories? They stay.",
-      "Your Friend Maddowy",
+      "Your Friend (Best or close?, tell me :)",
+      "Even an enemy is fineee!!",
+      "Made With love",
+      "Maddowy",
       
     ];
 
-    function showMessages(list, index = 0, callback = null, delay = 8000) {
+    // Timing controls (ms)
+    const FADE_IN = 1000;   // 1s
+    const STAY = 6000;      // 4s
+    const FADE_OUT = 1000;  // 1s
+    const GAP = 3000;       // 1s blank before next
+    const ANIMATION_TOTAL = FADE_IN + STAY + FADE_OUT; // 6s
+
+    function showMessages(list, index = 0, callback = null) {
       if (index >= list.length) {
         if (callback) callback();
         return;
       }
-
       const text = list[index];
       const textOverlay = document.getElementById("textOverlay");
       textOverlay.innerText = text;
       textOverlay.style.animation = "none";
       textOverlay.offsetHeight; // trigger reflow
-      textOverlay.style.animation = "fadeText 8s ease-in-out forwards";
+      textOverlay.style.animation = `fadeText ${ANIMATION_TOTAL}ms ease-in-out forwards`;
 
       setTimeout(() => {
-        showMessages(list, index + 1, callback, delay);
-      }, delay);
-    }
-
-  function handleDone() {
-    const name = document.getElementById("name").value.trim();
-    const birthday = document.querySelector('input[name="birthday"]:checked');
-
-    if (!name || !birthday) {
-      alert("Heyy... fill all the fields! No shortcuts 😤");
-      return;
-    }
-
-    document.getElementById("form-container").style.display = "none";
-    document.getElementById("video-container").style.zIndex = "10";
-
-    introMessages[1] = `You must be ${name}`;
-
-    showMessages(introMessages, 0, () => {
-      const vid = document.getElementById("surpriseVideo");
-      const bgm = document.getElementById("bgMusic");
-
-      vid.style.display = "block";
-      vid.load();
-      vid.play();
-
-      vid.onended = () => {
-        // Fade out the video container
-        document.getElementById('video-container').classList.add('fade-out');
-
+        textOverlay.innerText = "";
         setTimeout(() => {
-          // After fade out, hide video and show overlay
-          document.getElementById('video-container').style.display = 'none';
-          document.getElementById('black-overlay').style.display = 'block';
+          showMessages(list, index + 1, callback);
+        }, GAP); // gap after fade out before next message
+      }, ANIMATION_TOTAL);
+    }
 
-          // Play music + show outro messages after dramatic pause
-          bgm.play().then(() => {
-            showMessages(outroMessages, 0, null, 10000); // 5 sec delay between each text
-          }).catch(() => {
-            showMessages(outroMessages, 0, null, 10000);
-          });
+    function handleDone() {
+      const name = document.getElementById("name").value.trim();
+      const birthday = document.querySelector('input[name="birthday"]:checked');
+      if (!name || !birthday) {
+        alert("Heyy... fill all the fields! No shortcuts 😤");
+        return;
+      }
+      document.getElementById("form-container").style.display = "none";
+      document.getElementById("video-container").style.zIndex = "10";
+      introMessages[1] = `You must be ${name}`;
 
-        }, 1500); // wait for fade animation to finish
-      };
-    });
-  }
-</script>
-
+      showMessages(introMessages, 0, () => {
+        const vid = document.getElementById("surpriseVideo");
+        const bgm = document.getElementById("bgMusic");
+        vid.style.display = "block";
+        vid.load();
+        vid.play();
+        vid.onended = () => {
+          document.getElementById('video-container').classList.add('fade-out');
+          setTimeout(() => {
+            document.getElementById('video-container').style.display = 'none';
+            document.getElementById('black-overlay').style.display = 'block';
+            bgm.play().then(() => {
+              showMessages(outroMessages, 0, null);
+            }).catch(() => {
+              showMessages(outroMessages, 0, null);
+            });
+          }, 1500);
+        };
+      });
+    }
+  </script>
 </body>
 </html>
