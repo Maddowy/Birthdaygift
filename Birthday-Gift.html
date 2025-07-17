@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sneaky Surprise 🎁</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .container {
+      background-color: #222;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.1);
+      z-index: 10000;
+      position: relative;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input[type="text"] {
+      padding: 8px;
+      margin-top: 5px;
+      width: 100%;
+      border: none;
+      border-radius: 5px;
+    }
+    .radio-group {
+      margin-top: 5px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .radio-group label {
+      margin-top: 0;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 25px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #00b894;
+      border: none;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    .fullscreen-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 9999;
+      display: none;
+      background-color: black;
+      animation: fadeIn 1s ease forwards;
+      pointer-events: none;
+    }
+    .fade-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: white;
+      opacity: 0;
+      z-index: 10000;
+      animation: fadeText 5s ease-in-out forwards;
+      text-align: center;
+    }
+    @keyframes fadeText {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    #video-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: black;
+}
+
+#video-container.fade-out {
+  animation: fadeOut 1.5s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+#black-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: black;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="container" id="form-container">
+    <label for="name">What's your name?</label>
+    <input type="text" id="name" placeholder="Enter your sweet name..." />
+
+    <label>Is it your birthday?</label>
+    <div class="radio-group">
+      <input type="radio" name="birthday" value="yes" id="bday-yes" />
+      <label for="bday-yes">Yes</label>
+    </div>
+
+    <div class="button-container">
+      <button onclick="handleDone()">Done</button>
+    </div>
+  </div>
+
+  <div id="textOverlay" class="fade-text"></div>
+  
+  <div id="video-container">
+   <video id="surpriseVideo" class="fullscreen-video" playsinline>
+     <source src="birthdaay.mp4" type="video/mp4" />
+   </video>
+  </div>
+
+  <div id="black-overlay"></div> 
+
+  <audio id="bgMusic">
+    <source src="intro.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const introMessages = [
+      "Hey",
+      "", // Placeholder for user's name
+      "And it's your birthday isn't it?",
+      "I am maddowy :)",
+      "I made this website for you. Although I used AI",
+      "A gift is a gift. Dil se de raha hu",
+      "Here's a quick little video for u"
+    ];
+
+    const outroMessages = [
+      "So… that was it 😌",
+      "Told you it's not much but from the heart.",
+      "Happy Birthday once again 💙",
+      "You mean a lot to me, just saying.",
+      "Its not the best birthday gift, i hope it comes in the good category",
+      "I wish I had put more effort, but still. I did What I wanted to do. I hope you liked it, I hope you smiled and I hope you do good in your life",
+      "Next time, I will do it myself. I promise :)",
+      "This page will vanish in 5 seconds. Just like this moment. But memories? They stay.",
+      "Your Friend Maddowy",
+      
+    ];
+
+    function showMessages(list, index = 0, callback = null, delay = 3000) {
+      if (index >= list.length) {
+        if (callback) callback();
+        return;
+      }
+
+      const text = list[index];
+      const textOverlay = document.getElementById("textOverlay");
+      textOverlay.innerText = text;
+      textOverlay.style.animation = "none";
+      textOverlay.offsetHeight; // trigger reflow
+      textOverlay.style.animation = "fadeText 2.5s ease-in-out forwards";
+
+      setTimeout(() => {
+        showMessages(list, index + 1, callback, delay);
+      }, delay);
+    }
+
+  function handleDone() {
+    const name = document.getElementById("name").value.trim();
+    const birthday = document.querySelector('input[name="birthday"]:checked');
+
+    if (!name || !birthday) {
+      alert("Heyy... fill all the fields! No shortcuts 😤");
+      return;
+    }
+
+    document.getElementById("form-container").style.display = "none";
+    document.getElementById("video-container").style.zIndex = "10";
+
+    introMessages[1] = `You must be ${name}`;
+
+    showMessages(introMessages, 0, () => {
+      const vid = document.getElementById("surpriseVideo");
+      const bgm = document.getElementById("bgMusic");
+
+      vid.style.display = "block";
+      vid.load();
+      vid.play();
+
+      vid.onended = () => {
+        // Fade out the video container
+        document.getElementById('video-container').classList.add('fade-out');
+
+        setTimeout(() => {
+          // After fade out, hide video and show overlay
+          document.getElementById('video-container').style.display = 'none';
+          document.getElementById('black-overlay').style.display = 'block';
+
+          // Play music + show outro messages after dramatic pause
+          bgm.play().then(() => {
+            showMessages(outroMessages, 0, null, 10000); // 5 sec delay between each text
+          }).catch(() => {
+            showMessages(outroMessages, 0, null, 10000);
+          });
+
+        }, 1500); // wait for fade animation to finish
+      };
+    });
+  }
+</script>
+
+</body>
+</html>
