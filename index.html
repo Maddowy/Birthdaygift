@@ -80,13 +80,13 @@
       color: white;
       opacity: 0;
       z-index: 10000;
-      animation: fadeText 5s ease-in-out forwards;
+      animation: fadeText 8s ease-in-out forwards;
       text-align: center;
     }
     @keyframes fadeText {
       0% { opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
       100% { opacity: 0; }
     }
     @keyframes fadeIn {
@@ -181,7 +181,7 @@
       
     ];
 
-    function showMessages(list, index = 0, callback = null, delay = 3000) {
+    function showMessages(list, index = 0, callback = null, delay = 8000) {
       if (index >= list.length) {
         if (callback) callback();
         return;
@@ -192,7 +192,7 @@
       textOverlay.innerText = text;
       textOverlay.style.animation = "none";
       textOverlay.offsetHeight; // trigger reflow
-      textOverlay.style.animation = "fadeText 2.5s ease-in-out forwards";
+      textOverlay.style.animation = "fadeText 8s ease-in-out forwards";
 
       setTimeout(() => {
         showMessages(list, index + 1, callback, delay);
