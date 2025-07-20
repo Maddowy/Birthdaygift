@@ -49,7 +49,7 @@
       text-align: center;
       margin-top: 25px;
     }
-    button {
+    button, .game-btn {
       padding: 10px 20px;
       background-color: #00b894;
       border: none;
@@ -57,6 +57,10 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 1em;
+      margin: 5px;
+    }
+    .game-btn-alt {
+      background-color: #636e72;
     }
     .fullscreen-video {
       position: fixed;
@@ -112,6 +116,115 @@
       height: 100vh;
       z-index: 9998;
     }
+    /* Game Styles */
+    #game-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.92);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #fff;
+      font-size: 1.5rem;
+    }
+    .game-info {
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    #click-target {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #00b894;
+      position: absolute;
+      cursor: pointer;
+      box-shadow: 0 0 16px 2px #00b89488;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #fff;
+      user-select: none;
+      transition: background 0.2s;
+      z-index: 10002;
+      touch-action: manipulation;
+    }
+    #game-win-message, #game-heart-message, #game-insult-message, #game-final-score {
+      display: none;
+      font-size: 2rem;
+      margin-top: 40px;
+      color: #ffe082;
+      text-align: center;
+      animation: fadeText 2s ease-in-out;
+      z-index: 10003;
+    }
+    #game-heart-message {
+      color: #ff7675;
+      font-size: 2.5rem;
+    }
+    #game-insult-message {
+      color: #fdcb6e;
+      font-size: 1.7rem;
+      margin-top: 30px;
+    }
+    #game-final-score {
+      color: #00b894;
+      font-size: 1.5rem;
+    }
+    #heart-canvas {
+      display: block;
+      margin: 0 auto 0 auto;
+      background: transparent;
+    }
+    .game-btn-container {
+      margin-top: 18px;
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    /* Skip/Continue button always top left, on mobile too */
+    #game-skip-btn-fixed {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10005;
+      padding: 8px 17px;
+      font-size: 1rem;
+      border-radius: 7px;
+      background: #636e72;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      opacity: 0.92;
+      transition: background 0.2s;
+      box-shadow: 0 0 8px #2226;
+    }
+    #game-skip-btn-fixed:active {
+      background: #2d3436;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      #click-target {
+        width: 54px;
+        height: 54px;
+        font-size: 1.1rem;
+      }
+      #game-skip-btn-fixed {
+        padding: 6px 14px;
+        font-size: 0.95rem;
+        top: 7px;
+        left: 7px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -138,6 +251,39 @@
     </video>
   </div>
 
+  <!-- Game skip/continue button, always top-left -->
+  <button id="game-skip-btn-fixed" style="display:none;" onclick="continueToOutro()">Skip & Continue</button>
+
+  <div id="game-container">
+    <div class="game-info" id="game-instructions">
+      <strong>Mini Game Time!</strong><br>
+      <span id="level-desc"></span>
+    </div>
+    <div class="game-info">
+      Level: <span id="level-name"></span><br>
+      Level Score: <span id="level-score">0</span> / <span id="level-goal"></span><br>
+      Total Score: <span id="total-score">0</span>
+    </div>
+    <div id="click-target">🎯</div>
+    <div id="game-win-message">Level Complete!<br>Click to continue</div>
+    <div id="game-heart-message">
+      <canvas id="heart-canvas" width="180" height="120"></canvas>
+      <div>Congratulations!<br>You did it! ❤️</div>
+      <div style="font-size:1.3rem;color:#fff;margin-top:10px;">Love from Maddowy!</div>
+      <div style="margin-top:18px;">
+        <button class="game-btn" onclick="continueToOutro()">Continue</button>
+      </div>
+    </div>
+    <div id="game-insult-message">
+      <div>Noob! You couldn't do it!! 😜</div>
+      <div class="game-btn-container">
+        <button class="game-btn" id="game-btn-retry">Try Again</button>
+        <!-- The skip button here is redundant, as the fixed one is always visible -->
+      </div>
+    </div>
+    <div id="game-final-score"></div>
+  </div>
+
   <div id="black-overlay"></div> 
 
   <audio id="bgMusic">
@@ -145,6 +291,39 @@
   </audio>
 
   <script>
+    // --- Game Level Data ---
+    const levels = [
+      {
+        name: "Easy",
+        scoreGoal: 5,
+        clickTime: 5000, // ms
+        pointsPerClick: 1.5,
+        desc: "Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>5 seconds</b>.<br>Goal for this level: <b>5 points</b>."
+      },
+      {
+        name: "Medium",
+        scoreGoal: 5,
+        clickTime: 2500,
+        pointsPerClick: 1.5,
+        desc: "Now, click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>2.5 seconds</b>.<br>Goal for this level: <b>5 points</b>."
+      },
+      {
+        name: "Hard",
+        scoreGoal: 3,
+        clickTime: 1000,
+        pointsPerClick: 5,
+        desc: "Last round! Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>1 second</b>.<br>Goal for this level: <b>3 points</b>."
+      }
+    ];
+    const minTotalScore = 20;
+    let totalScore = 0;
+    let currentLevel = 0;
+    let levelScore = 0;
+    let attempt = 1;
+    let maxAttempts = 2;
+    let clickTimeout = null;
+    let gameActive = false;
+
     const introMessages = [
       "Hey",
       "", // Placeholder for user's name
@@ -179,15 +358,25 @@
       "Even an enemy is fineee!!",
       "Made With love",
       "Maddowy",
-      
     ];
 
     // Timing controls (ms)
     const FADE_IN = 1000;   // 1s
-    const STAY = 6000;      // 4s
+    const STAY = 6000;      // 6s
     const FADE_OUT = 1000;  // 1s
-    const GAP = 3000;       // 1s blank before next
-    const ANIMATION_TOTAL = FADE_IN + STAY + FADE_OUT; // 6s
+    const GAP = 3000;       // 3s blank before next
+    const ANIMATION_TOTAL = FADE_IN + STAY + FADE_OUT; // 8s
+
+    // Utility for random position
+    function getRandomPosition() {
+      const margin = window.innerWidth < 600 ? 30 : 90; // smaller margin for mobile
+      const w = window.innerWidth - margin;
+      const h = window.innerHeight - margin;
+      return {
+        left: Math.floor(Math.random() * w) + margin/2,
+        top: Math.floor(Math.random() * h) + margin/2
+      };
+    }
 
     function showMessages(list, index = 0, callback = null) {
       if (index >= list.length) {
@@ -222,24 +411,202 @@
 
       showMessages(introMessages, 0, () => {
         const vid = document.getElementById("surpriseVideo");
-        const bgm = document.getElementById("bgMusic");
         vid.style.display = "block";
         vid.load();
         vid.play();
         vid.onended = () => {
-          document.getElementById('video-container').classList.add('fade-out');
-          setTimeout(() => {
-            document.getElementById('video-container').style.display = 'none';
-            document.getElementById('black-overlay').style.display = 'block';
-            bgm.play().then(() => {
-              showMessages(outroMessages, 0, null);
-            }).catch(() => {
-              showMessages(outroMessages, 0, null);
-            });
-          }, 1500);
+          // Show the game!
+          startGame();
         };
       });
     }
+
+    // ---- Game Logic ----
+    function startGame(shouldResetAttempts = true) {
+      document.getElementById("video-container").classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById("video-container").style.display = 'none';
+        document.getElementById("game-container").style.display = 'flex';
+        document.getElementById("game-skip-btn-fixed").style.display = "block";
+        resetGame(shouldResetAttempts);
+        startLevel();
+      }, 1500);
+    }
+
+    function resetGame(shouldResetAttempts = true) {
+      currentLevel = 0;
+      totalScore = 0;
+      levelScore = 0;
+      if (shouldResetAttempts) attempt = 1;
+      document.getElementById("total-score").innerText = totalScore.toFixed(1);
+      document.getElementById("game-win-message").style.display = "none";
+      document.getElementById("game-heart-message").style.display = "none";
+      document.getElementById("game-insult-message").style.display = "none";
+      document.getElementById("game-final-score").style.display = "none";
+      document.getElementById("click-target").style.display = "flex";
+    }
+
+    function startLevel() {
+      if (currentLevel >= levels.length) {
+        // All levels done, check final score
+        checkTotalScore();
+        return;
+      }
+      levelScore = 0;
+      updateLevelUI();
+      document.getElementById("game-instructions").innerHTML = `<strong>Mini Game Time!</strong><br>${levels[currentLevel].desc}`;
+      document.getElementById("click-target").style.display = "flex";
+      document.getElementById("game-win-message").style.display = "none";
+      moveTarget();
+      gameActive = true;
+      scheduleClickTimeout();
+    }
+
+    function updateLevelUI() {
+      document.getElementById("level-name").innerText = levels[currentLevel].name;
+      document.getElementById("level-score").innerText = levelScore;
+      document.getElementById("level-goal").innerText = levels[currentLevel].scoreGoal;
+      document.getElementById("total-score").innerText = totalScore.toFixed(1);
+    }
+
+    function moveTarget() {
+      const target = document.getElementById("click-target");
+      const pos = getRandomPosition();
+      target.style.left = pos.left + "px";
+      target.style.top = pos.top + "px";
+    }
+
+    function scheduleClickTimeout() {
+      clearTimeout(clickTimeout);
+      clickTimeout = setTimeout(() => {
+        if (gameActive) {
+          // Time's up for this click, fail this level
+          failLevel();
+        }
+      }, levels[currentLevel].clickTime);
+    }
+
+    document.getElementById("click-target").addEventListener("click", function(e) {
+      e.stopPropagation();
+      if (!gameActive) return;
+      clearTimeout(clickTimeout);
+      levelScore++;
+      totalScore += levels[currentLevel].pointsPerClick;
+      updateLevelUI();
+      if (levelScore >= levels[currentLevel].scoreGoal) {
+        // Level complete
+        gameActive = false;
+        document.getElementById("click-target").style.display = "none";
+        document.getElementById("game-win-message").style.display = "block";
+      } else {
+        moveTarget();
+        scheduleClickTimeout();
+      }
+    });
+
+    // On level win message click: go to next level
+    document.getElementById("game-win-message").addEventListener("click", function() {
+      document.getElementById("game-win-message").style.display = "none";
+      currentLevel++;
+      startLevel();
+    });
+
+    // On game lose: failLevel and insult/retry logic
+    function failLevel() {
+      gameActive = false;
+      clearTimeout(clickTimeout);
+      document.getElementById("click-target").style.display = "none";
+      document.getElementById("game-win-message").style.display = "none";
+      document.getElementById("game-insult-message").style.display = "block";
+      document.getElementById("game-final-score").style.display = "block";
+      document.getElementById("game-final-score").innerText = `Your Total Score: ${totalScore.toFixed(1)}`;
+    }
+
+    // Retry button
+    document.getElementById("game-btn-retry").addEventListener("click", function() {
+      document.getElementById("game-insult-message").style.display = "none";
+      document.getElementById("game-final-score").style.display = "none";
+      if (attempt < maxAttempts) {
+        attempt++;
+        resetGame(false);
+        startLevel();
+      } else {
+        showInsultAndChoices();
+      }
+    });
+
+    function showInsultAndChoices() {
+      document.getElementById("game-insult-message").innerHTML = `
+        <div>Noob! You couldn't do it!! 😜</div>
+        <div class="game-btn-container">
+          <button class="game-btn" onclick="continueToOutro()">Skip and Continue</button>
+        </div>
+      `;
+    }
+
+    function checkTotalScore() {
+      document.getElementById("click-target").style.display = "none";
+      if (totalScore >= minTotalScore) {
+        // WIN! Draw heart and congrats
+        showHeartAndCongrats();
+      } else {
+        failLevel();
+      }
+    }
+
+    function showHeartAndCongrats() {
+      document.getElementById("game-heart-message").style.display = "block";
+      document.getElementById("game-final-score").style.display = "block";
+      document.getElementById("game-final-score").innerText = `Your Total Score: ${totalScore.toFixed(1)}`;
+      drawHeart();
+    }
+
+    // Draw a heart on canvas
+    function drawHeart() {
+      const canvas = document.getElementById("heart-canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2 + 10);
+      ctx.scale(1.2, 1.2);
+      ctx.beginPath();
+      for (let t = 0; t < Math.PI * 2; t += 0.01) {
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        if (t === 0) ctx.moveTo(x * 6, y * 6);
+        else ctx.lineTo(x * 6, y * 6);
+      }
+      ctx.closePath();
+      ctx.fillStyle = "#ff7675";
+      ctx.shadowColor = "#ff7675aa";
+      ctx.shadowBlur = 18;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Continue to outro (called from skip and heart message)
+    function continueToOutro() {
+      document.getElementById("game-container").style.display = "none";
+      document.getElementById("game-skip-btn-fixed").style.display = "none";
+      document.getElementById('black-overlay').style.display = 'block';
+      const bgm = document.getElementById("bgMusic");
+      bgm.play().then(() => {
+        showMessages(outroMessages, 0, null);
+      }).catch(() => {
+        showMessages(outroMessages, 0, null);
+      });
+    }
+
+    // Responsive: reposition target on resize
+    window.addEventListener("resize", function() {
+      if (document.getElementById("game-container").style.display === "flex" && document.getElementById("click-target").style.display !== "none") {
+        moveTarget();
+      }
+    });
+
+    // Expose to window for inline onclicks
+    window.continueToOutro = continueToOutro;
+
   </script>
 </body>
 </html>
