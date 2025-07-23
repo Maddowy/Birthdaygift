@@ -269,7 +269,7 @@
     <div id="game-heart-message">
       <canvas id="heart-canvas" width="180" height="120"></canvas>
       <div>Congratulations!<br>You did it! ❤️</div>
-      <div style="font-size:1.3rem;color:#fff;margin-top:10px;">Love from Maddowy!</div>
+      <div style="font-size:1.3rem;color:#fff;margin-top:10px;">Congrats from Maddowy!</div>
       <div style="margin-top:18px;">
         <button class="game-btn" onclick="continueToOutro()">Continue</button>
       </div>
@@ -296,23 +296,23 @@
       {
         name: "Easy",
         scoreGoal: 5,
-        clickTime: 5000, // ms
+        clickTime: 2000, // ms
         pointsPerClick: 1.5,
-        desc: "Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>5 seconds</b>.<br>Goal for this level: <b>5 points</b>."
+        desc: "Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>2 seconds</b>.<br>Goal for this level: <b>5 points</b>."
       },
       {
         name: "Medium",
         scoreGoal: 5,
-        clickTime: 2500,
+        clickTime: 1000,
         pointsPerClick: 1.5,
-        desc: "Now, click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>2.5 seconds</b>.<br>Goal for this level: <b>5 points</b>."
+        desc: "Now, click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>1 seconds</b>.<br>Goal for this level: <b>5 points</b>."
       },
       {
         name: "Hard",
         scoreGoal: 3,
-        clickTime: 1000,
+        clickTime: 700,
         pointsPerClick: 5,
-        desc: "Last round! Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>1 second</b>.<br>Goal for this level: <b>3 points</b>."
+        desc: "Last round! Click the <span style='color:#00b894;font-weight:bold;'>green dot</span> within <b>0.7 second</b>.<br>Goal for this level: <b>3 points</b>."
       }
     ];
     const minTotalScore = 20;
@@ -361,9 +361,9 @@
 
     // Timing controls (ms)
     const FADE_IN = 1000;   // 1s
-    const STAY = 5000;      // 5s
+    const STAY = 6000;      // 5s
     const FADE_OUT = 1000;  // 1s
-    const GAP = 2000;       // 2s blank before next
+    const GAP = 3000;       // 2s blank before next
     const ANIMATION_TOTAL = FADE_IN + STAY + FADE_OUT; // 7s
 
     // Utility for random position
